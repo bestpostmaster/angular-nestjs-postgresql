@@ -1,0 +1,68 @@
+# Dépendances
+node_modules/
+
+# Build / sortie
+dist/
+out-tsc/
+build/
+.angular/
+.nest/
+tmp/
+
+# Variables d'environnement
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Tests / couverture
+coverage/
+.nyc_output/
+junit.xml
+
+# Cache
+.cache/
+.eslintcache
+.npm/
+*.tsbuildinfo
+
+# IDE / éditeurs
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+*.iml
+*.sublime-workspace
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Divers
+.sass-cache/
+connect.lock
+libpeerconnection.log
+testem.log
+typings/
+__screenshots__/
+.pnpm-store/
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Claude Code
+.claude/settings.local.json
