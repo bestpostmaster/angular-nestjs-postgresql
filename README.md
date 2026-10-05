@@ -28,7 +28,7 @@ Le premier lancement construit les images : comptez quelques minutes.
 
 Un container PostgreSQL 17 est créé au lancement, avec une base `app` (utilisateur `postgres`, mot de passe `postgres`). Les valeurs se changent dans `.env`. Les données sont conservées dans le volume `pgdata`.
 
-Les migrations TypeORM s'exécutent automatiquement au démarrage du back.
+Les migrations TypeORM s'exécutent automatiquement au démarrage du back. Elles créent un utilisateur de test : `user@test.com` / `abcd1234` (mot de passe haché en bcrypt).
 
 Interface web (type phpMyAdmin) : Adminer, sur http://localhost:8081. Connexion : système `PostgreSQL`, serveur `postgres`, utilisateur `postgres`, mot de passe `postgres`, base `app` (valeurs du `.env`).
 
