@@ -1,7 +1,9 @@
 import { join } from 'node:path';
 import type { DataSourceOptions } from 'typeorm';
 
-export function buildDataSourceOptions(env: NodeJS.ProcessEnv): DataSourceOptions {
+export function buildDataSourceOptions(
+  env: NodeJS.ProcessEnv,
+): DataSourceOptions {
   return {
     type: 'postgres',
     host: env.DB_HOST ?? 'localhost',

@@ -27,7 +27,11 @@
     "migration:create": "node --import tsx ./node_modules/typeorm/cli.js migration:create",
     "migration:run": "node --import tsx ./node_modules/typeorm/cli.js migration:run -d src/database/data-source.ts",
     "migration:revert": "node --import tsx ./node_modules/typeorm/cli.js migration:revert -d src/database/data-source.ts",
-    "migration:show": "node --import tsx ./node_modules/typeorm/cli.js migration:show -d src/database/data-source.ts"
+    "migration:show": "node --import tsx ./node_modules/typeorm/cli.js migration:show -d src/database/data-source.ts",
+    "lint:fix": "oxlint --type-aware --fix src/ test/",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
+    "typecheck": "tsc --noEmit --incremental false -p tsconfig.json",
+    "check": "npm run format:check && npm run lint && npm run typecheck"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",

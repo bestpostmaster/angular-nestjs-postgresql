@@ -5,4 +5,4 @@ COPY package*.json ./
 RUN npm ci
 COPY . .
 EXPOSE 3002
-CMD ["npm", "run", "start:dev"]
+CMD ["sh", "-c", "npm install --no-audit --no-fund && npm run start:dev"]
