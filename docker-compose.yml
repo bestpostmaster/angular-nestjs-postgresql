@@ -42,6 +42,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       DB_NAME: ${DB_NAME:-app}
       FRONT_URL: http://localhost:${FRONT_PORT:-4200}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
     ports:
       - '${BACK_PORT:-3002}:3002'
     volumes:
