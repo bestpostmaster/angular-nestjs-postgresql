@@ -1,0 +1,54 @@
+# Environnement de développement complet : docker compose up --build
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-app}
+    ports:
+      - '${DB_PORT:-5432}:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  back:
+    build: ./back
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 3002
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_NAME: ${DB_NAME:-app}
+      FRONT_URL: http://localhost:${FRONT_PORT:-4200}
+    ports:
+      - '${BACK_PORT:-3002}:3002'
+    volumes:
+      - ./back:/app
+      - back_node_modules:/app/node_modules
+
+  front:
+    build: ./front
+    restart: unless-stopped
+    depends_on:
+      - back
+    ports:
+      - '${FRONT_PORT:-4200}:4200'
+    volumes:
+      - ./front:/app
+      - front_node_modules:/app/node_modules
+
+volumes:
+  pgdata:
+  back_node_modules:
+  front_node_modules:
