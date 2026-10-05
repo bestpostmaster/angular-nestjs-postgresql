@@ -20,6 +20,7 @@ make start
 | front    | http://localhost:4200 |
 | back     | http://localhost:3002 |
 | postgres | `localhost:5432`      |
+| adminer  | http://localhost:8081 |
 
 Le premier lancement construit les images : comptez quelques minutes.
 
@@ -28,6 +29,10 @@ Le premier lancement construit les images : comptez quelques minutes.
 Un container PostgreSQL 17 est créé au lancement, avec une base `app` (utilisateur `postgres`, mot de passe `postgres`). Les valeurs se changent dans `.env`. Les données sont conservées dans le volume `pgdata`.
 
 Les migrations TypeORM s'exécutent automatiquement au démarrage du back.
+
+Interface web (type phpMyAdmin) : Adminer, sur http://localhost:8081. Connexion : système `PostgreSQL`, serveur `postgres`, utilisateur `postgres`, mot de passe `postgres`, base `app` (valeurs du `.env`).
+
+En ligne de commande :
 
 ```bash
 docker compose exec postgres psql -U postgres -d app
@@ -78,6 +83,7 @@ docker compose exec front npm test
 | ------------- | ---------- | --------------------------- |
 | `FRONT_PORT`  | `4200`     | Port du front sur l'hôte    |
 | `BACK_PORT`   | `3002`     | Port du back sur l'hôte     |
+| `ADMINER_PORT`| `8081`     | Port d'Adminer sur l'hôte   |
 | `DB_PORT`     | `5432`     | Port de Postgres sur l'hôte |
 | `DB_USER`     | `postgres` | Utilisateur Postgres        |
 | `DB_PASSWORD` | `postgres` | Mot de passe Postgres       |
