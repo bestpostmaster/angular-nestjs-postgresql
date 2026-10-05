@@ -64,7 +64,20 @@ docker compose exec back npm install <paquet>
 docker compose exec front npm install <paquet>
 ```
 
-Si `package.json` a été modifié à la main : `docker compose up --build -V`.
+Si `package.json` est modifié à la main (ou après un `git pull`), relancez simplement `make start` : les dépendances sont synchronisées (`npm install`) à chaque démarrage des containers.
+
+### Qualité de code (format, lint, analyse statique)
+
+Équivalent de php-cs-fixer (Prettier) et de PHPStan (oxlint type-aware + `tsc`, `strictTemplates` côté Angular), pour `back` et `front` :
+
+```bash
+docker compose exec back npm run check        # format:check + lint + typecheck
+docker compose exec back npm run format       # corrige le formatage (Prettier)
+docker compose exec back npm run lint:fix     # corrige le lint automatiquement
+docker compose exec front npm run check
+docker compose exec front npm run format
+docker compose exec front npm run lint:fix
+```
 
 ### Migrations, tests, lint
 
