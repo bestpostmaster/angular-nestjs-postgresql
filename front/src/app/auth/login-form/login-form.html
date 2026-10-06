@@ -1,0 +1,89 @@
+@if (auth.isAuthenticated()) {
+  <div class="authenticated-state">
+    <p class="authenticated-message">Connecté</p>
+    <button
+      pButton
+      type="button"
+      label="Déconnexion"
+      (click)="onLogout()"
+      class="logout-button"
+      data-testid="logout-button"
+    ></button>
+  </div>
+} @else {
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="login-form">
+    <div class="form-group">
+      <label for="email" class="form-label">Email</label>
+      <input
+        id="email"
+        type="email"
+        pInputText
+        formControlName="email"
+        placeholder="votre@email.com"
+        autocomplete="email"
+        [attr.aria-invalid]="isEmailInvalid()"
+        [attr.aria-describedby]="isEmailInvalid() ? 'email-errors' : null"
+        data-testid="email-input"
+      />
+      @if (isEmailInvalid()) {
+        <div id="email-errors" role="alert" class="error-message">
+          @for (error of emailErrors(); track error) {
+            <p>{{ error }}</p>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="form-group">
+      <label for="password" class="form-label">Mot de passe</label>
+      <div class="password-input-wrapper">
+        <input
+          id="password"
+          [type]="showPassword() ? 'text' : 'password'"
+          pInputText
+          formControlName="password"
+          placeholder="••••••••"
+          autocomplete="current-password"
+          [attr.aria-invalid]="isPasswordInvalid()"
+          [attr.aria-describedby]="isPasswordInvalid() ? 'password-errors' : null"
+          data-testid="password-input"
+        />
+        <button
+          type="button"
+          pButton
+          icon="pi pi-eye"
+          [attr.aria-label]="
+            showPassword() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'
+          "
+          [attr.aria-pressed]="showPassword()"
+          class="toggle-password-button"
+          (click)="togglePasswordVisibility()"
+          data-testid="toggle-password-button"
+        ></button>
+      </div>
+      @if (isPasswordInvalid()) {
+        <div id="password-errors" role="alert" class="error-message">
+          @for (error of passwordErrors(); track error) {
+            <p>{{ error }}</p>
+          }
+        </div>
+      }
+    </div>
+
+    @if (errorMessage()) {
+      <div class="error-alert" role="alert">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    <button
+      type="submit"
+      pButton
+      label="Se connecter"
+      [loading]="isLoading()"
+      [disabled]="isLoading()"
+      class="submit-button"
+      data-testid="submit-button"
+    ></button>
+  </form>
+}

@@ -6,11 +6,40 @@ La skill démarre directement `architect-reviewer` (Sonnet) au premier plan.
 Il analyse, établit le plan et lance `coder` (Haiku). Le coder implémente et
 retourne `IMPLEMENTATION_READY_FOR_REVIEW`. Sonnet inspecte le diff, les fichiers
 non suivis et les validations Docker. Il retourne `CHANGES_REQUIRED` au coder
-jusqu'à résolution, puis `FEATURE_APPROVED` et s'arrête. L'humain conserve
+dans la limite de trois cycles, puis `FEATURE_APPROVED` si tout est validé et
+s'arrête. L'humain conserve
 `git add`, `git commit` et `git push`.
 
-`FEATURE_BLOCKED` indique un prérequis manquant ; aucune approbation ne doit être
-émise dans ce cas. Deux retours sans progrès imposent un diagnostic du blocage.
+La demande autorise le lancement du coder et les boucles de corrections sans
+nouvelle confirmation. Le reviewer tranche les choix techniques courants selon
+le code existant, la sécurité et `coding_standards.md`, puis explique sa décision.
+La gestion du jeton fait partie de ces choix ; elle ne justifie ni un arbitrage
+de l'humain ni une connexion limitée au formulaire et à l'appel API. Les questions
+restent réservées aux informations métier indispensables sans choix raisonnable
+et aux actions sensibles nécessitant confirmation. Les hooks restent applicables.
+
+`FEATURE_BLOCKED` indique un prérequis manquant, une absence de convergence ou un
+budget épuisé ; aucune approbation ne doit être émise dans ce cas.
+
+## Efficacité en tokens et convergence
+
+Sonnet concentre le raisonnement d'architecture et de review ; Haiku réalise le
+code, les tests et les corrections. L'exploration est ciblée ; les messages
+référencent chemins et symboles sans recopier code, diff ou standards. Les
+rapports visent 200 mots maximum, avec les preuves utiles. Sonnet examine le diff
+et les fichiers non suivis en tenant compte de l'état initial du dépôt.
+
+Haiku exécute les tests ciblés pendant les itérations. Sonnet exécute les checks
+et suites complètes des projets touchés au gate final, avec e2e/build/coverage
+selon les standards. Une modification ultérieure invalide les résultats affectés.
+
+Le budget est de trois cycles au total : une implémentation initiale et deux
+passes de corrections, chacune suivie d'une review. Le gate final fait partie
+du cycle courant. Deux retours sans progrès déclenchent un arrêt anticipé ; après
+le troisième cycle non validé, Sonnet retourne `FEATURE_BLOCKED` avec problèmes
+restants, tentatives, validations et prochaine action. Il ne relance pas le
+workflow sans nouvelle instruction humaine. Cette limite est une consigne des
+agents ; les hooks actuels ne comptent pas les cycles.
 
 ## Prérequis
 

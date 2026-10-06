@@ -32,6 +32,24 @@ Lire :
 
 Respecter systématiquement les standards du projet.
 
+# Efficacité en tokens
+
+Haiku implémente le plan ; Sonnet décide de l'architecture et assure la review.
+Explorer les chemins et symboles indiqués, puis leurs dépendances utiles avec
+`Glob`/`Grep` et des lectures ciblées. Lire intégralement les règles obligatoires
+une fois ; lors d'une reprise, ne pas relire les fichiers inchangés déjà dans
+le contexte et ne pas refaire l'analyse d'architecture.
+
+Le repository et le diff contiennent le code : ne pas les recopier dans le
+rapport au reviewer, ni répéter le plan ou les standards. Référencer les chemins
+et symboles. Viser 200 mots maximum : changements utiles, commandes réellement
+exécutées, résultats et blocages ; seuls les extraits d'erreur nécessaires sont
+à inclure. Ne pas masquer un échec pour raccourcir le rapport.
+
+Respecter le numéro `cycle N/3` fourni par Sonnet. Ne pas lancer de sous-agent
+ou tenter de prolonger la boucle ; seul le reviewer peut demander une correction
+dans le budget restant.
+
 # Commandes Bash autorisées (liste blanche appliquée par un hook)
 
 Une seule commande simple par appel : ni `;` `&` `|` `>` `$()`, ni guillemets, ni multi-lignes.
@@ -73,10 +91,13 @@ Ne réalise pas de refactoring sans rapport avec la tâche.
 
 Respecter le plan fourni par `architect-reviewer`.
 
-Si une décision architecturale importante manque ou si les instructions sont
-ambiguës, ne pas inventer silencieusement une solution.
+Prendre les décisions d'implémentation courantes selon le code existant et
+`coding_standards.md`, puis les expliquer dans le retour au reviewer.
 
-Signaler le problème au reviewer.
+Si une décision change l'architecture ou le contrat prévu par le plan, proposer
+une solution motivée au reviewer, qui tranche. Ne pas demander à l'humain
+d'arbitrer une décision technique ordinaire. Signaler au reviewer les informations
+métier indispensables manquantes et les blocages imposés par les hooks.
 
 # Docker
 
@@ -103,8 +124,16 @@ Exemples :
 
 Ajouter ou modifier les tests nécessaires à l'implémentation.
 
-Avant de rendre le travail au reviewer, exécuter les validations pertinentes
-dans Docker.
+Pendant chaque itération, exécuter dans Docker les tests ciblés sur les
+comportements modifiés et les régressions liées. Utiliser les filtres du runner
+déjà configuré : fichier Vitest côté back, `--include=<chemin>` côté Angular
+avec `--watch=false`. Vérifier qu'ils sélectionnent réellement les tests attendus ;
+zéro test exécuté ne valide rien. Lancer un lint/typecheck si nécessaire pour
+diagnostiquer un problème, sans lancer systématiquement tous les checks.
+
+La suite complète et les checks obligatoires sont réservés au gate final exécuté
+par Sonnet, après review. Ne pas les dupliquer avant chaque retour et ne pas
+présenter les tests ciblés comme une validation complète de la feature.
 
 Ne jamais prétendre qu'un test a été exécuté s'il ne l'a pas été.
 
@@ -135,7 +164,7 @@ Lorsque `architect-reviewer` retourne `CHANGES_REQUIRED` :
 1. analyser chaque problème ;
 2. effectuer les corrections ;
 3. mettre à jour les tests si nécessaire ;
-4. relancer les validations pertinentes ;
+4. relancer les tests ciblés affectés et les diagnostics nécessaires ;
 5. retourner `IMPLEMENTATION_READY_FOR_REVIEW`.
 
 # Git

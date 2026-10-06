@@ -1,0 +1,110 @@
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 28rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+input[type='email'],
+input[type='password'],
+input[type='text'] {
+  width: 100%;
+}
+
+input[type='email'].ng-invalid,
+input[type='password'].ng-invalid {
+  border-color: var(--surface-500);
+}
+
+.password-input-wrapper {
+  display: flex;
+  position: relative;
+  width: 100%;
+}
+
+.password-input-wrapper input {
+  flex: 1;
+}
+
+.toggle-password-button {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--surface-500);
+  transition: color 0.2s ease-in-out;
+
+  &:hover {
+    color: var(--surface-600);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+.error-message {
+  padding: 0.5rem;
+  background-color: var(--red-50);
+  border-left: 0.25rem solid var(--red-500);
+  border-radius: var(--border-radius);
+  color: var(--red-700);
+  font-size: 0.875rem;
+
+  p {
+    margin: 0.25rem 0;
+    padding: 0;
+
+    &:first-child {
+      margin-top: 0;
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.error-alert {
+  padding: 0.75rem 1rem;
+  background-color: var(--red-50);
+  border: 1px solid var(--red-300);
+  border-radius: var(--border-radius);
+  color: var(--red-700);
+  font-weight: 500;
+}
+
+.success-alert {
+  padding: 0.75rem 1rem;
+  background-color: var(--green-50);
+  border: 1px solid var(--green-300);
+  border-radius: var(--border-radius);
+  color: var(--green-700);
+  font-weight: 500;
+}
+
+.submit-button {
+  width: 100%;
+}

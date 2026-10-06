@@ -234,7 +234,7 @@ Une tâche n'est **terminée** que si ces commandes passent. Ne jamais déclarer
 - **Interceptors fonctionnels** : ajout du JWT (`Authorization: Bearer`), gestion centralisée des `401/403`, des erreurs réseau et du logging.
 - L'URL de l'API vient de la **configuration d'environnement**, jamais en dur dans les services.
 - Typer les réponses API par des **interfaces** partagées (modèles dans `models/`), pas de `any`.
-- Stockage du token : privilégier un cookie `HttpOnly` côté serveur ; si `localStorage`, être conscient du risque XSS et ne jamais y stocker autre chose que le strict nécessaire.
+- Gestion du jeton : l'agent tranche selon le contrat existant et le besoin de persistance, sans demander un arbitrage technique à l'humain. Privilégier un cookie `HttpOnly` côté serveur lorsque le périmètre permet une authentification par cookie, avec `Secure` en production, `SameSite` adapté et protection CSRF. Pour une API existante en `Authorization: Bearer` sans besoin de persistance, conserver le jeton en mémoire et gérer expiration et déconnexion. Ne pas introduire `localStorage` par défaut : si une persistance accessible au JavaScript est nécessaire, justifier le choix, limiter les données stockées et expliquer le risque XSS résiduel. Respecter les critères d'acceptation ; ne pas ajouter un mécanisme de refresh ou une refonte d'authentification sans nécessité.
 - Gérer les 3 états de toute requête : **chargement / succès / erreur**, avec feedback utilisateur.
 - Aucun `console.log` laissé ; utiliser un service de logging si besoin.
 
@@ -302,6 +302,12 @@ Une tâche n'est **terminée** que si ces commandes passent. Ne jamais déclarer
 5. **Vérifier** : `docker compose exec <back|front> npm run check` + tests (+ e2e/build si pertinent) dans chaque projet touché, **toujours via Docker**.
 6. **Relire son propre diff** : code mort, `console.log`, secrets, fichiers inutiles, `any`, imports non utilisés.
 7. **Rapporter fidèlement** : ce qui a été fait, ce qui a été vérifié, ce qui ne l'a pas été, les risques résiduels. Ne jamais affirmer un succès non constaté.
+
+Dans le workflow `/feature`, les retours intermédiaires du coder utilisent des
+tests ciblés ; les checks et suites complètes des projets touchés sont exécutés
+par le reviewer au gate final, avec e2e/build/coverage si requis. Un retour
+intermédiaire ne vaut pas validation de la tâche. Appliquer le budget de trois
+cycles et la politique d'efficacité en tokens définis dans les agents.
 
 ### Actions à confirmer avant de les faire
 

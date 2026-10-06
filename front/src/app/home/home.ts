@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
-import { ButtonModule } from 'primeng/button';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { LoginForm } from '../auth/login-form/login-form.js';
 
 @Component({
-  imports: [ButtonModule],
+  imports: [LoginForm],
   selector: 'app-home',
   styleUrl: './home.scss',
   templateUrl: './home.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Home {}
