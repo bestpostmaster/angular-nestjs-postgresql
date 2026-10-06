@@ -1,5 +1,7 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
+import type { Logger } from 'pino';
+import { MESSENGER_LOGGER } from '../logging/logging.module.js';
 import {
   getHandledMessage,
   MessageHandlerInterface,
@@ -9,14 +11,16 @@ import type { MessageClass } from './message.decorator.js';
 /** Découvre les providers annotés `@MessageHandler` et les indexe par message. */
 @Injectable()
 export class HandlerRegistry implements OnModuleInit {
-  private readonly logger = new Logger(HandlerRegistry.name);
   private readonly handlers = new Map<
     MessageClass,
     MessageHandlerInterface[]
   >();
   private readonly byName = new Map<string, MessageClass>();
 
-  constructor(private readonly discovery: DiscoveryService) {}
+  constructor(
+    private readonly discovery: DiscoveryService,
+    @Inject(MESSENGER_LOGGER) private readonly logger: Logger,
+  ) {}
 
   onModuleInit(): void {
     for (const wrapper of this.discovery.getProviders()) {
@@ -29,7 +33,10 @@ export class HandlerRegistry implements OnModuleInit {
         instance,
       ]);
       this.byName.set(message.name, message);
-      this.logger.log(`${instance.constructor.name} handles ${message.name}`);
+      this.logger.info(
+        { handler: instance.constructor.name, message: message.name },
+        'Handler registered',
+      );
     }
   }
 

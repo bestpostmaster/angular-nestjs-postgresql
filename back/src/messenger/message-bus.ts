@@ -1,6 +1,8 @@
 import { InjectQueue } from '@nestjs/bullmq';
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { Queue } from 'bullmq';
+import type { Logger } from 'pino';
+import { MESSENGER_LOGGER } from '../logging/logging.module.js';
 import { HandlerRegistry } from './handler-registry.js';
 import { getMessageOptions, MessageClass } from './message.decorator.js';
 
@@ -16,11 +18,10 @@ export interface DispatchOptions {
 /** Équivalent de `MessageBusInterface`. */
 @Injectable()
 export class MessageBus {
-  private readonly logger = new Logger(MessageBus.name);
-
   constructor(
     private readonly registry: HandlerRegistry,
     @InjectQueue(MESSENGER_QUEUE) private readonly queue: Queue,
+    @Inject(MESSENGER_LOGGER) private readonly logger: Logger,
   ) {}
 
   /**
@@ -47,6 +48,10 @@ export class MessageBus {
           removeOnFail: false, // les échecs définitifs restent consultables (failure transport)
         },
       );
+      this.logger.info(
+        { message: cls.name, jobId: job.id, delayMs: options.delayMs },
+        'Message queued',
+      );
       return job.id!;
     }
 
@@ -55,11 +60,25 @@ export class MessageBus {
 
   /** Exécute les handlers ; utilisé en sync et par le worker. */
   async handle(message: object): Promise<unknown[]> {
+    const name = message.constructor.name;
     const handlers = this.registry.getHandlers(message);
     if (handlers.length === 0) {
-      throw new Error(`No handler for message ${message.constructor.name}`);
+      this.logger.error({ message: name }, 'No handler for message');
+      throw new Error(`No handler for message ${name}`);
     }
-    this.logger.debug(`Handling ${message.constructor.name}`);
-    return Promise.all(handlers.map((handler) => handler.handle(message)));
+    const start = performance.now();
+    try {
+      const results = await Promise.all(
+        handlers.map((handler) => handler.handle(message)),
+      );
+      this.logger.info(
+        { message: name, durationMs: Math.round(performance.now() - start) },
+        'Message handled',
+      );
+      return results;
+    } catch (err) {
+      this.logger.error({ message: name, err }, 'Message handling failed');
+      throw err;
+    }
   }
 }

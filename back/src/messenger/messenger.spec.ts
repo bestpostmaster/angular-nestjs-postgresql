@@ -1,6 +1,8 @@
 import { Test } from '@nestjs/testing';
 import { getQueueToken } from '@nestjs/bullmq';
 import { DiscoveryModule } from '@nestjs/core';
+import pino from 'pino';
+import { MESSENGER_LOGGER } from '../logging/logging.module.js';
 import { HandlerRegistry } from './handler-registry.js';
 import { MESSENGER_QUEUE, MessageBus } from './message-bus.js';
 import { MessageHandler } from './message-handler.decorator.js';
@@ -48,12 +50,16 @@ describe('Messenger', () => {
         MessageBus,
         PingHandler,
         SlowPingHandler,
+        { provide: MESSENGER_LOGGER, useValue: pino({ enabled: false }) },
         { provide: getQueueToken(MESSENGER_QUEUE), useValue: queue },
         {
           provide: MessengerWorker,
-          useFactory: (b: MessageBus, r: HandlerRegistry) =>
-            new MessengerWorker(b, r, {} as never),
-          inject: [MessageBus, HandlerRegistry],
+          useFactory: (
+            b: MessageBus,
+            r: HandlerRegistry,
+            logger: pino.Logger,
+          ) => new MessengerWorker(b, r, {} as never, logger),
+          inject: [MessageBus, HandlerRegistry, MESSENGER_LOGGER],
         },
       ],
     }).compile();
