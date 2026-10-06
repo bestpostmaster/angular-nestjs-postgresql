@@ -5,6 +5,7 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
 import { buildDataSourceOptions } from './database/database.config.js';
+import { MessengerModule } from './messenger/messenger.module.js';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { buildDataSourceOptions } from './database/database.config.js';
         migrationsRun: true,
       }),
     }),
+    MessengerModule,
     AuthModule,
   ],
   controllers: [AppController],
