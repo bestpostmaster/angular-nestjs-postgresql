@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { buildDataSourceOptions } from './database/database.config.js';
 import { LoggingModule } from './logging/logging.module.js';
 import { MessengerModule } from './messenger/messenger.module.js';
+import { StatusController } from './status/status.controller.js';
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { MessengerModule } from './messenger/messenger.module.js';
     MessengerModule,
     AuthModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, StatusController],
   providers: [AppService],
 })
 export class AppModule {}
