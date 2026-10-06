@@ -25,4 +25,23 @@ docker compose exec front npm test -- --watch=false
 - Front : composants standalone, `OnPush`, signals, `@if`/`@for`.
 - Pas de `console.log`, de secret en dur, ni de `any` injustifié.
 - Une tâche n'est terminée que lorsque `check` et les tests passent dans Docker ; rapporter fidèlement ce qui a été vérifié ou non.
-- Commiter ou pousser uniquement sur demande explicite.
+
+## Git — contrôle exclusivement humain
+
+Les agents peuvent consulter l'état du dépôt et les modifications (`git status`,
+`git diff`, `git log`, `git show`) lorsque nécessaire.
+
+Les agents ne doivent jamais modifier l'historique Git ni publier de modifications.
+
+Interdictions absolues :
+- `git commit`
+- `git push`
+- `git merge`
+- `git rebase`
+- `git cherry-pick`
+- `git reset`
+- création/suppression/changement de branche
+- toute autre commande modifiant l'historique ou le dépôt distant
+
+Ces opérations restent exclusivement sous le contrôle de l'humain, même si une
+feature a été validée par l'agent reviewer.
