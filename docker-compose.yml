@@ -48,6 +48,7 @@ services:
       redis:
         condition: service_healthy
     environment:
+      NODE_ENV: development
       PORT: 3002
       REDIS_HOST: redis
       REDIS_PORT: 6379
@@ -75,6 +76,7 @@ services:
         condition: service_healthy
     command: ['sh', '-c', 'npm run messenger:consume']
     environment:
+      NODE_ENV: development
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USER: ${DB_USER:-postgres}

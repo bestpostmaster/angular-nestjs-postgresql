@@ -6,7 +6,8 @@ import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
 import { buildDataSourceOptions } from './database/database.config.js';
 import { LoggingModule } from './logging/logging.module.js';
-import { MessengerModule } from './messenger/messenger.module.js';
+import { profilingModule } from './profiler/profiling.module.js';
+import { MessengerModule } from './messenger/index.js';
 import { StatusController } from './status/status.controller.js';
 
 @Module({
@@ -25,6 +26,7 @@ import { StatusController } from './status/status.controller.js';
         migrationsRun: true,
       }),
     }),
+    profilingModule,
     LoggingModule,
     MessengerModule,
     AuthModule,

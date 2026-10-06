@@ -4,7 +4,7 @@ RUN npm install -g npm@12
 RUN apk add --no-cache bash git
 ENV PATH=/app/node_modules/.bin:$PATH
 WORKDIR /app
-COPY package*.json ./
+COPY package*.json .npmrc ./
 RUN npm ci
 COPY . .
 EXPOSE 3002

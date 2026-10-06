@@ -7,6 +7,7 @@ import { MessengerWorker } from './messenger/messenger.worker.js';
 /** Point d'entrée du consommateur : `npm run messenger:consume`. */
 async function bootstrap() {
   process.env.APP_LOG_NAME ??= 'worker';
+  process.env.PROFILER_ENABLED ??= 'false'; // pas de requêtes HTTP à profiler
   const app = await NestFactory.createApplicationContext(AppModule, {
     bufferLogs: true,
   });
