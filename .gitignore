@@ -66,3 +66,7 @@ pids
 
 # Claude Code
 .claude/settings.local.json
+
+# État et autorisations Claude locaux
+.claude/runtime/
+.claude/feature-approvals.json

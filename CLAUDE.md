@@ -43,17 +43,16 @@ manque et qu'aucun choix raisonnable ne permet d'avancer. Une décision techniqu
 ordinaire, comme la gestion d'un jeton, relève de l'agent. Les actions sensibles
 listées dans `coding_standards.md` et les protections des hooks restent applicables.
 
-## Efficacité du workflow `/feature`
+## Workflow `/feature`
 
-Sonnet assure l'architecture et la review ; Haiku implémente le code, les tests
-et les corrections. Appliquer la politique des agents : exploration ciblée,
-instructions et rapports compacts sans duplication du code, review fondée sur
-le diff et les fichiers non suivis. Tests ciblés pendant les itérations ; checks
-et suites complètes des projets touchés au gate final.
-
-Limiter la demande à trois cycles implémentation/review, première implémentation
-incluse. À budget épuisé ou après deux retours sans progrès, arrêter avec
-`FEATURE_BLOCKED` et un diagnostic exploitable. Ne pas relancer automatiquement.
+La politique unique est définie dans `.claude/feature-workflow.md` : besoin
+autonome, prérequis par périmètre, état initial, budget suivi par hooks,
+exceptions sensibles, review indépendante et preuves de validation.
+Sonnet planifie/valide ; **Haiku reste le seul coder, sans remplacement**.
+Lire cette politique lors d'un travail `/feature`, sans dupliquer ses règles.
+La session principale transmet le verdict du reviewer ; elle ne reprend pas
+elle-même l'implémentation ou les corrections après son arrêt. Une reprise
+passe par le reviewer et son budget, jamais par un appel coder direct.
 
 ## Git — contrôle exclusivement humain
 

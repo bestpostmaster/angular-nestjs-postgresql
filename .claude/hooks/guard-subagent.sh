@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Garde-fou des sous-agents (hook PreToolUse déclaré dans le frontmatter de chaque agent).
+# Garde-fou des sous-agents, appelé par le routage PreToolUse du projet.
 # Usage : guard-subagent.sh <coder|reviewer>
 #
 # Principe : LISTE BLANCHE. Tout ce qui n'est pas explicitement autorisé est refusé.
@@ -12,6 +12,7 @@ set -euo pipefail
 PROFILE="${1:?profil requis : coder|reviewer}"
 [[ "$PROFILE" == coder || "$PROFILE" == reviewer ]] || exit 2
 INPUT="$(cat)"
+source "$(dirname "$0")/workflow-state.sh"
 TOOL="$(jq -r '.tool_name // empty' <<<"$INPUT")"
 
 deny() { echo "BLOCKED ($PROFILE) : $1" >&2; exit 2; }
@@ -76,6 +77,14 @@ bash_guard() {
     allow 'git en lecture seule'
   fi
 
+  # Exceptions humaines exactes : Docker uniquement, jamais un shell/Git interne.
+  local exception='^docker compose (exec( -T)? (back|front) npm (install|uninstall)( [A-Za-z0-9_./:=@,+~-]+)*|up( -d)?( --build)?( (back|front|worker|postgres|redis))*|build( (back|front|worker))*|restart( (back|front|worker|postgres|redis))+|run --rm --no-deps (back|front) npm (test|run (check|lint|format:check|typecheck|test|test:cov|test:e2e|build))( -- [A-Za-z0-9_./:=@,+~ -]+)?)$'
+  if [[ "$PROFILE" == coder && "$cmd" =~ $exception ]] &&
+    [[ ! "$cmd" =~ (^|[[:space:]])(sh|bash|git|node|psql|--entrypoint|--privileged)([[:space:]]|$) ]] &&
+    approval_ok commands "$cmd"; then
+    allow 'exception Docker exacte autorisée par humain pour cette session'
+  fi
+
   deny "commande non autorisée : « $cmd ». Autorisé : docker compose exec [-T] <back|front> npm (test | run check|lint|format:check|typecheck|test|test:cov|test:e2e|build$([[ $PROFILE == coder ]] && echo '|format|lint:fix|migration:*')) [-- args] ; docker compose ps|logs --tail N <service> ; git status|diff|log|show. Pour tout le reste (install, up/down, make, scripts), demander à l'humain."
 }
 
@@ -91,20 +100,22 @@ file_guard() {
   case "$rel" in
     .env.example | */.env.example) ;;
     .claude | .claude/* | */.claude | */.claude/* | .git | .git/* | */.git | */.git/* | .idea/* | .env | .env.* | */.env | */.env.* | \
-      CLAUDE.md | */CLAUDE.md | AGENTS.md | */AGENTS.md | coding_standards.md | */coding_standards.md | Makefile | */Makefile)
-      deny "fichier protégé (config des agents, git, secrets, règles ou Makefile) : $rel — modification réservée à l'humain."
+      CLAUDE.md | */CLAUDE.md | AGENTS.md | */AGENTS.md | coding_standards.md | */coding_standards.md)
+      deny "fichier protégé (config des agents, git, secrets ou règles) : $rel — modification réservée à l'humain."
       ;;
   esac
   case "${rel##*/}" in
-    package.json | package-lock.json | npm-shrinkwrap.json | yarn.lock | pnpm-lock.yaml | bun.lock | bun.lockb | \
+    Makefile | package.json | package-lock.json | npm-shrinkwrap.json | yarn.lock | pnpm-lock.yaml | bun.lock | bun.lockb | \
       Dockerfile | Dockerfile.* | *.Dockerfile | docker-compose*.yml | docker-compose*.yaml | compose*.yml | compose*.yaml | \
       .gitlab-ci*.yml | .gitlab-ci*.yaml | Jenkinsfile | Jenkinsfile.* | azure-pipelines*.yml | azure-pipelines*.yaml | .travis.yml)
-      deny "fichier sensible (dépendances, Docker ou CI) : $rel — intervention humaine nécessaire."
+      if approval_ok files "$rel"; then allow 'édition sensible exacte autorisée par humain'; fi
+      deny "fichier sensible (dépendances, Docker ou CI) : $rel — proposition et autorisation humaine nécessaires."
       ;;
   esac
   case "$rel" in
     .github/* | */.github/* | .circleci/* | */.circleci/* | .buildkite/* | */.buildkite/*)
-      deny "configuration CI protégée : $rel — intervention humaine nécessaire."
+      if approval_ok files "$rel"; then allow 'édition CI exacte autorisée par humain'; fi
+      deny "configuration CI protégée : $rel — proposition et autorisation humaine nécessaires."
       ;;
     back/src/database/migrations/*)
       # Les nouvelles migrations restent éditables tant qu'elles ne sont pas versionnées.
@@ -119,10 +130,12 @@ file_guard() {
 case "$TOOL" in
   Agent)
     [[ "$PROFILE" == reviewer ]] || deny 'seul le reviewer peut déléguer.'
-    [[ "$(jq -r '.tool_input.subagent_type // empty' <<<"$INPUT")" == coder ]] || deny 'seul le sous-agent coder est autorisé.'
-    [[ "$(jq -r '.tool_input.run_in_background // false' <<<"$INPUT")" == false ]] || deny 'le coder doit être lancé au premier plan.'
-    [[ "$(jq -r '.tool_input.model // empty' <<<"$INPUT")" == '' ]] || deny 'utiliser le modèle Haiku défini par coder.'
-    allow 'délégation au coder Haiku'
+    kind="$(jq -r '.tool_input.subagent_type // empty' <<<"$INPUT")"
+    [[ "$kind" == coder || "$kind" == independent-reviewer ]] || deny 'seuls coder et independent-reviewer sont autorisés.'
+    [[ "$(jq -r '.tool_input.run_in_background // false' <<<"$INPUT")" == false ]] || deny 'les agents doivent être lancés au premier plan.'
+    [[ "$(jq -r '.tool_input.model // empty' <<<"$INPUT")" == '' ]] || deny 'utiliser le modèle défini dans chaque agent ; Haiku imposé au coder.'
+    if [[ "$kind" == coder ]]; then count_coder_cycle; fi
+    allow 'délégation autorisée avec modèle déclaré et budget contrôlé'
     ;;
   Bash) bash_guard "$(jq -r '.tool_input.command // empty' <<<"$INPUT")" ;;
   Edit | Write | MultiEdit | NotebookEdit) file_guard ;;

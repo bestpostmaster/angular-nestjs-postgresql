@@ -303,11 +303,10 @@ Une tâche n'est **terminée** que si ces commandes passent. Ne jamais déclarer
 6. **Relire son propre diff** : code mort, `console.log`, secrets, fichiers inutiles, `any`, imports non utilisés.
 7. **Rapporter fidèlement** : ce qui a été fait, ce qui a été vérifié, ce qui ne l'a pas été, les risques résiduels. Ne jamais affirmer un succès non constaté.
 
-Dans le workflow `/feature`, les retours intermédiaires du coder utilisent des
-tests ciblés ; les checks et suites complètes des projets touchés sont exécutés
-par le reviewer au gate final, avec e2e/build/coverage si requis. Un retour
-intermédiaire ne vaut pas validation de la tâche. Appliquer le budget de trois
-cycles et la politique d'efficacité en tokens définis dans les agents.
+Dans le workflow `/feature`, appliquer `.claude/feature-workflow.md` pour
+l'état initial, les tests ciblés intermédiaires, les validations finales, le
+budget et les exceptions sensibles. Un retour intermédiaire n'est pas une
+validation de la tâche. Les standards applicatifs ci-dessus restent obligatoires.
 
 ### Actions à confirmer avant de les faire
 

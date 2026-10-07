@@ -1,58 +1,67 @@
-# Workflow `/feature`
+# Agents Claude du projet
 
-Commande : `/feature <besoin et critères d'acceptation>`.
+`/feature <besoin autonome + critères, ou chemin de spécification>` lance
+`architect-reviewer` (Sonnet). Le seul agent qui implémente est `coder` (Haiku
+imposé). Une review Sonnet indépendante est prévue pour les features sensibles.
+L'humain conserve toutes les opérations Git d'écriture.
 
-La skill démarre directement `architect-reviewer` (Sonnet) au premier plan.
-Il analyse, établit le plan et lance `coder` (Haiku). Le coder implémente et
-retourne `IMPLEMENTATION_READY_FOR_REVIEW`. Sonnet inspecte le diff, les fichiers
-non suivis et les validations Docker. Il retourne `CHANGES_REQUIRED` au coder
-dans la limite de trois cycles, puis `FEATURE_APPROVED` si tout est validé et
-s'arrête. L'humain conserve
-`git add`, `git commit` et `git push`.
-
-La demande autorise le lancement du coder et les boucles de corrections sans
-nouvelle confirmation. Le reviewer tranche les choix techniques courants selon
-le code existant, la sécurité et `coding_standards.md`, puis explique sa décision.
-La gestion du jeton fait partie de ces choix ; elle ne justifie ni un arbitrage
-de l'humain ni une connexion limitée au formulaire et à l'appel API. Les questions
-restent réservées aux informations métier indispensables sans choix raisonnable
-et aux actions sensibles nécessitant confirmation. Les hooks restent applicables.
-
-`FEATURE_BLOCKED` indique un prérequis manquant, une absence de convergence ou un
-budget épuisé ; aucune approbation ne doit être émise dans ce cas.
-
-## Efficacité en tokens et convergence
-
-Sonnet concentre le raisonnement d'architecture et de review ; Haiku réalise le
-code, les tests et les corrections. L'exploration est ciblée ; les messages
-référencent chemins et symboles sans recopier code, diff ou standards. Les
-rapports visent 200 mots maximum, avec les preuves utiles. Sonnet examine le diff
-et les fichiers non suivis en tenant compte de l'état initial du dépôt.
-
-Haiku exécute les tests ciblés pendant les itérations. Sonnet exécute les checks
-et suites complètes des projets touchés au gate final, avec e2e/build/coverage
-selon les standards. Une modification ultérieure invalide les résultats affectés.
-
-Le budget est de trois cycles au total : une implémentation initiale et deux
-passes de corrections, chacune suivie d'une review. Le gate final fait partie
-du cycle courant. Deux retours sans progrès déclenchent un arrêt anticipé ; après
-le troisième cycle non validé, Sonnet retourne `FEATURE_BLOCKED` avec problèmes
-restants, tentatives, validations et prochaine action. Il ne relance pas le
-workflow sans nouvelle instruction humaine. Cette limite est une consigne des
-agents ; les hooks actuels ne comptent pas les cycles.
+La politique est centralisée dans [feature-workflow.md](feature-workflow.md).
+Les agents et la skill y renvoient ; les règles applicatives restent dans
+[coding_standards.md](../coding_standards.md).
 
 ## Prérequis
 
-- Claude Code 2.1.219 ou ultérieur pour la profondeur configurable des sous-agents.
-- Sonnet et Haiku accessibles via le compte Claude.
-- `bash`, `jq`, `realpath`, `tr` sur l'hôte pour les hooks.
-- Services Docker démarrés par l'humain à la racine du dépôt.
-- Redémarrer Claude Code après une modification des agents ou des hooks pour
-  garantir le chargement de la configuration complète.
+- Claude Code 2.1.292 ou ultérieur (version de l'audit local).
+- Sonnet et Haiku accessibles ; aucune configuration globale ne doit remplacer
+  les modèles déclarés des agents.
+- `bash`, `jq`, `realpath`, `tr`, `sed`, `date`, `mktemp`, `mv`, `mkdir`, `flock`, `git` ; le harnais de tests utilise aussi `rg`, `sort`,
+  `readlink`, `ln`, `rm`.
+- Docker disponible pour les validations applicatives ; seuls les services
+  nécessaires au périmètre sont requis. L'analyse reste possible sans Docker.
+- Redémarrer Claude après changement de configuration pour charger les hooks.
 
-La profondeur est fixée à deux : session → Sonnet → Haiku. Aucun modèle n'est
-imposé à la session principale. Ne pas activer une configuration globale qui
-force tous les sous-agents sur un même modèle : elle annulerait Sonnet/Haiku.
+Le mode fork automatique et les tâches de fond sont désactivés pour garantir
+une délégation bloquante contrôlée par le reviewer. Sur Claude 2.1.292,
+`SendMessage` devient indisponible dans ce mode : une correction est un nouvel
+appel Haiku avec contexte utile et compteur conservé. Les contrôles
+de profil sont enregistrés au niveau projet, sans dépendre des hooks des agents.
+
+La profondeur est fixée à deux : session → reviewer → coder/review indépendante.
+`context: fork` n'importe pas automatiquement la conversation précédente.
+Préparer un besoin complet ; utiliser le modèle de spécification ci-dessous.
+
+## Fichiers
+
+| Fichier | Responsabilité |
+| --- | --- |
+| `feature-workflow.md` | Politique unique : état initial, budget, preuves et exceptions. |
+| `agents/architect-reviewer.md` | Planification et validation, sans édition. |
+| `agents/coder.md` | Implémentation et tests ciblés, Haiku imposé. |
+| `agents/independent-reviewer.md` | Analyse indépendante en lecture seule. |
+| `skills/feature/SKILL.md` | Entrée explicite `/feature`. |
+| `hooks/guard-workflow.sh` | Routage des contrôles par type d’agent au niveau projet. |
+| `hooks/guard-subagent.sh` | Commandes, éditions, modèles et délégations. |
+| `hooks/workflow-state.sh` | Compteur verrouillé et autorisations humaines exactes. |
+| `hooks/journal-workflow.sh` | Observations des outils et retours des agents. |
+| `hooks/protect-git.sh` | Git visible dans Bash en lecture seule. |
+| `runtime/` | Journaux et compteurs locaux, ignorés par Git. |
+| `feature-approvals.json` | Exceptions temporaires renseignées par l'humain, ignorées par Git. |
+
+## Spécification conseillée
+
+```text
+/feature Objectif : …
+AC1 : … (comportement observable)
+AC2 : … (cas d'erreur)
+Exclusions : …
+Contrat API attendu / existant : …
+Contraintes ou décisions métier : …
+```
+
+Pour une demande longue, placer ces informations dans un fichier de
+spécification et passer son chemin. Le reviewer associe chaque AC à une preuve,
+découpe le plan avant de déléguer : trois appels Haiku par étape, une à trois
+étapes au plus, nombre fixé au premier appel.
 
 ## Vérifications
 
@@ -68,50 +77,61 @@ docker compose exec -T front npm run check
 docker compose exec -T front npm test -- --watch=false
 ```
 
-Les hooks sont des scripts d'intégration Claude exécutés sur l'hôte ; les outils
-applicatifs et leurs tests restent dans Docker.
+Les hooks et leur harnais Bash tournent sur l'hôte ; les outils applicatifs
+restent dans Docker. Les tests couvrent refus Git/shell/édition, modèles,
+ordre et plafond des cycles, appels concurrents, exceptions exactes/session/
+expiration, chemins liés et conservation des erreurs dans le journal.
 
-## Portée des protections
+## Limites des protections
 
-Le reviewer dispose de la lecture, des validations Docker et de la délégation
-au seul coder. Le coder dispose des outils d'édition, des validations, du
-formatage et des migrations. Les hooks refusent les autres commandes shell,
-les modifications des règles/configurations des agents et les opérations Git
-d'écriture. Une dépendance à installer ou une stack arrêtée constitue un blocage
-à remonter à l'humain.
+Les hooks sont des garde-fous, pas un environnement isolé. Scripts npm,
+configurations de tests et liens doivent être fiables ; les validations
+exécutent du code du dépôt. Le hook global ne détecte pas Git caché dans un
+script arbitraire de la session principale. Une exception humaine est une
+permission temporaire, pas un bac à sable. Les compteurs bornent les appels
+au coder ; les AC et la pertinence des tests restent vérifiés par Sonnet.
+Le journal conserve des observations tronquées, pas une preuve universelle de
+succès ; il ne remplace pas les rapports complets ni les validations finales.
 
-La skill contrôle la présence et l'état de la stack avec `docker compose ps`
-avant toute délégation. Les manifests/lockfiles, Docker/Compose, la CI et les
-règles à tous les niveaux sont protégés en édition. Les migrations versionnées
-sont protégées ; les nouvelles migrations non versionnées restent éditables.
-Le formatage et les migrations ont des arguments restreints pour éviter une
-écriture indirecte vers un fichier protégé. Ces opérations sensibles nécessitent
-une intervention humaine dans ce workflow.
+## Audit du 7 octobre 2026
 
-Ces hooks constituent des garde-fous de workflow, pas un environnement isolé.
-Les scripts npm, configurations de tests, outils Git externes et liens du dépôt
-doivent être fiables : des commandes autorisées peuvent exécuter du code du
-projet. Le hook Git global filtre les appels Git visibles dans Bash ; il ne
-détecte pas une opération cachée dans un script arbitraire de la session
-principale. `FEATURE_APPROVED` exprime le verdict du reviewer ; aucun hook ne
-prouve à lui seul que tous les critères fonctionnels sont satisfaits.
+Syntaxe et tests des hooks : passants. Le test unitaire du controller back avait
+une attente obsolète ; elle est alignée sur la description actuelle des versions,
+sans modification du comportement applicatif.
+
+La suite e2e préexistante reste en échec : TypeORM tente de charger les fichiers
+TypeScript d'entités via le chargeur natif, puis le setup expire ; l'attente
+`Hello World!` est également obsolète. Cet échec est documenté, jamais compté
+comme une validation. Une feature HTTP/DB ne peut pas être approuvée avant
+réparation de ce harnais et exécution réussie des validations requises.
+
+Essai réel dans une copie isolée avec un container back dédié, sans front,
+worker, PostgreSQL ou Redis. Fonction pure `clampPageSize`, deux AC : bornage
+1..100 et rejet des nombres non entiers/non finis. Défaut contrôlé du harnais :
+AC2 volontairement absent de la première passe, détecté par la review.
+
+- Claude Code 2.1.292 ; Sonnet 5.5 reviewer, Haiku 4.5 coder, modèles confirmés
+  dans les retours structurés.
+- Deux appels Haiku et deux reviews : AC1 (7 tests) puis correction AC2
+  (12 tests ciblés), compteur final 2.
+- État initial : check vert et 5 tests back passants.
+- Gate final : check vert, 17 tests back passants sur 3 fichiers (1,39 s).
+- Seuls des fichiers de la copie temporaire ont été créés ; aucun code de cette
+  feature d'audit n'a été ajouté au dépôt de travail.
+- Durée CLI mesurée : 146,126 s ; coût estimé par Claude : 0,3033467 USD.
+  Ce coût au tarif catalogue n'est pas une facture ni un benchmark comparatif.
+
+Un premier essai avait révélé que les hooks frontmatter n'appliquaient pas les
+restrictions dans cette exécution et que les délégations continuaient en fond.
+Le routage projet et la désactivation du fond ont corrigé ces écarts dans le
+second essai. Le volume de dépendances dédié est writable (Vitest écrit son
+cache) ; aucun volume applicatif existant n'a été modifié par cet audit.
+La correction réelle utilise un nouvel appel Haiku, **pas** un `resume` non
+supporté. La review indépendante conditionnelle n'a pas été invoquée sur cette
+fonction sans risque particulier ; ses restrictions sont testées par les hooks.
+Les budgets à plusieurs étapes sont testés par le harnais Bash, pas par cet
+essai Claude à une seule étape.
 
 Documentation officielle : [skills](https://code.claude.com/docs/en/skills),
 [sous-agents](https://code.claude.com/docs/en/sub-agents),
 [hooks](https://code.claude.com/docs/en/hooks).
-
-## Audit du 6 octobre 2026
-
-Test réel avec Claude Code 2.1.292 : `/feature` a démarré Sonnet 5.5, qui a
-délégué à Haiku 4.5 la lecture des scripts npm et l'inspection Docker. Haiku a
-retourné `IMPLEMENTATION_READY_FOR_REVIEW`, puis Sonnet a contrôlé le retour et
-terminé le test avec `FEATURE_APPROVED`. Les événements des hooks n'indiquaient
-aucun refus de permission. Aucun fichier applicatif n'a été modifié par ce test.
-Il valide le lancement, les modèles, la délégation et les outils de lecture ;
-il ne teste pas une implémentation complète ni une boucle réelle de corrections.
-
-Les tests des hooks, la syntaxe Bash, les checks back/front et les trois tests
-front passent. Les tests back comptent quatre succès et un échec existant dans
-`back/src/app.controller.spec.ts:19` : le test attend `NestJS/Angular`, alors que
-le service renvoie une description détaillée des versions. Une feature touchant
-le back ne doit pas être approuvée sans traiter ou expliquer ce blocage.
