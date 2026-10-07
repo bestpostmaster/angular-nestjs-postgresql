@@ -4,11 +4,12 @@
     <button
       pButton
       type="button"
-      label="Déconnexion"
       (click)="onLogout()"
       class="logout-button"
       data-testid="logout-button"
-    ></button>
+    >
+      <span pButtonLabel>Déconnexion</span>
+    </button>
   </div>
 } @else {
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="login-form">
@@ -79,11 +80,12 @@
     <button
       type="submit"
       pButton
-      label="Se connecter"
       [loading]="isLoading()"
       [disabled]="isLoading()"
       class="submit-button"
       data-testid="submit-button"
-    ></button>
+    >
+      <span pButtonLabel>{{ submitLabel() }}</span>
+    </button>
   </form>
 }

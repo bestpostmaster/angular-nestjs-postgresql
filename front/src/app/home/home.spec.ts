@@ -42,6 +42,12 @@ describe('Home', () => {
     expect(loginForm).toBeTruthy();
   });
 
+  it('should pass the submit label to the login form', () => {
+    const compiled = fixture.nativeElement;
+    const submitButton = compiled.querySelector('[data-testid="submit-button"]');
+    expect(submitButton?.textContent).toContain('Se connecter');
+  });
+
   it('should display brand panel with app name', () => {
     const compiled = fixture.nativeElement;
     const brandPanel = compiled.querySelector('.home-brand-panel');

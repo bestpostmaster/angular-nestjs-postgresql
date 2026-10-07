@@ -2,6 +2,7 @@ import {
   Component,
   ChangeDetectionStrategy,
   inject,
+  input,
   signal,
   computed,
   DestroyRef,
@@ -44,6 +45,8 @@ export class LoginForm {
   readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+
+  readonly submitLabel = input('Se connecter');
 
   // Signaux d'état
   readonly isLoading = signal(false);

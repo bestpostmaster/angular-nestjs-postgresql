@@ -19,6 +19,8 @@ interface StrengthPoint {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Home {
+  protected readonly loginSubmitLabel = 'Se connecter';
+
   /**
    * Points forts de l'application : présentés visuellement avec icônes SVG
    */

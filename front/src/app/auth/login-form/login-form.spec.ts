@@ -226,6 +226,14 @@ describe('LoginForm', () => {
       expect(component).toBeTruthy();
     });
 
+    it('should display the label provided through the input', () => {
+      fixture.componentRef.setInput('submitLabel', 'Ouvrir la session');
+      fixture.detectChanges();
+
+      const submitButton = fixture.nativeElement.querySelector('[data-testid="submit-button"]');
+      expect(submitButton?.textContent).toContain('Ouvrir la session');
+    });
+
     it('should initialize form with email and password controls', () => {
       expect(component.form.get('email')).toBeTruthy();
       expect(component.form.get('password')).toBeTruthy();
