@@ -68,13 +68,26 @@ B deny coder 'docker compose run --rm back npm run check'
 B deny coder 'docker compose down -v'
 B deny coder 'docker compose logs -f back'
 B deny coder ''
-# --- Reviewer : lecture / validation uniquement
+# --- Reviewer : validations et édition Markdown uniquement
 B allow reviewer 'docker compose exec back npm run check'
 B allow reviewer 'git diff'
 B deny reviewer 'docker compose exec back npm run format'
 B deny reviewer 'docker compose exec back npm run lint:fix'
 B deny reviewer 'docker compose exec back npm run migration:run'
 F deny reviewer "$R/back/src/x.ts"
+for doc in README.md docs/new-feature.md back/README.md CLAUDE.md AGENTS.md coding_standards.md .claude/README.md .claude/feature-workflow.md .claude/agents/coder.md .claude/skills/feature/SKILL.md .github/README.md; do
+  F allow reviewer "$R/$doc"
+done
+F deny reviewer "$R/.claude/settings.json"
+F deny reviewer "$R/.claude/hooks/guard-subagent.sh"
+F deny reviewer "$R/.claude/runtime/report.md"
+F deny reviewer "$R/.git/README.md"
+F deny reviewer "$R/back/.git/README.md"
+F deny reviewer "$R/.env.notes.md"
+F deny reviewer "$R/../other-project/README.md"
+F deny reviewer "README.md"
+F deny readonly "$R/README.md"
+F deny readonly "$R/.claude/README.md"
 # --- Fichiers (coder)
 F allow coder "$R/back/src/x.ts"
 F allow coder "$R/front/src/app/x.ts"
@@ -267,6 +280,19 @@ route_expect() {
 route_expect deny '{"agent_type":"coder","tool_name":"Bash","tool_input":{"command":"ls -la"}}' 'coder shell refusé'
 route_expect allow '{"agent_type":"coder","tool_name":"Bash","tool_input":{"command":"docker compose ps"}}' 'coder inspection autorisée'
 route_expect deny "$(jq -cn --arg p "$TASK_TMP/back/new.ts" '{agent_type:"architect-reviewer",tool_name:"Write",tool_input:{file_path:$p}}')" 'reviewer sans édition'
+for tool in Edit Write; do
+  route_expect allow "$(jq -cn --arg tool "$tool" --arg p "$TASK_TMP/docs/feature.md" '{agent_type:"architect-reviewer",tool_name:$tool,tool_input:{file_path:$p}}')" "architecte $tool Markdown"
+  route_expect deny "$(jq -cn --arg tool "$tool" --arg p "$TASK_TMP/docs/feature.md" '{agent_type:"independent-reviewer",tool_name:$tool,tool_input:{file_path:$p}}')" "review indépendante $tool Markdown refusé"
+done
+printf 'source code\n' >"$TASK_TMP/back/source.ts"
+ln -s "$TASK_TMP/back/source.ts" "$TASK_TMP/code-alias.md"
+ln -s "$R/CLAUDE.md" "$TASK_TMP/outside-alias.md"
+ln -s "$TASK_TMP/snapshot.md" "$TASK_TMP/doc-alias.md"
+ln -s "$TASK_TMP/snapshot.md" "$TASK_TMP/false-extension.ts"
+F deny reviewer "$TASK_TMP/code-alias.md"
+F deny reviewer "$TASK_TMP/outside-alias.md"
+F allow reviewer "$TASK_TMP/doc-alias.md"
+F deny reviewer "$TASK_TMP/false-extension.ts"
 route_expect deny '{"agent_type":"independent-reviewer","tool_name":"Agent","tool_input":{"subagent_type":"coder"}}' 'review indépendante sans délégation'
 route_expect deny '{"tool_name":"Agent","tool_input":{"subagent_type":"coder"}}' 'session principale ne remplace pas reviewer'
 route_expect allow '{"tool_name":"Bash","tool_input":{"command":"ls"}}' 'conversation ordinaire hors workflow'

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Garde-fou des sous-agents, appelé par le routage PreToolUse du projet.
-# Usage : guard-subagent.sh <coder|reviewer>
+# Usage : guard-subagent.sh <coder|reviewer|readonly>
 #
 # Principe : LISTE BLANCHE. Tout ce qui n'est pas explicitement autorisé est refusé.
 #  - commande autorisée -> approuvée automatiquement (aucune invite humaine) ;
@@ -9,8 +9,8 @@
 # ni chaînage (; & | $() backticks), redirection ou multi-lignes.
 set -euo pipefail
 
-PROFILE="${1:?profil requis : coder|reviewer}"
-[[ "$PROFILE" == coder || "$PROFILE" == reviewer ]] || exit 2
+PROFILE="${1:?profil requis : coder|reviewer|readonly}"
+[[ "$PROFILE" == coder || "$PROFILE" == reviewer || "$PROFILE" == readonly ]] || exit 2
 INPUT="$(cat)"
 source "$(dirname "$0")/workflow-state.sh"
 TOOL="$(jq -r '.tool_name // empty' <<<"$INPUT")"
@@ -89,7 +89,7 @@ bash_guard() {
 }
 
 file_guard() {
-  [[ "$PROFILE" == coder ]] || deny 'ce profil ne peut modifier aucun fichier.'
+  [[ "$PROFILE" != readonly ]] || deny 'ce profil ne peut modifier aucun fichier.'
   local file root real rel
   file="$(jq -r '.tool_input.file_path // .tool_input.notebook_path // empty' <<<"$INPUT")"
   [[ "$file" == /* ]] || deny 'chemin absolu requis.'
@@ -97,6 +97,16 @@ file_guard() {
   real="$(realpath -m -- "$file")" # résout .. et liens symboliques
   [[ "$real" == "$root"/* ]] || deny "fichier hors du projet : $real"
   rel="${real#"$root"/}"
+  if [[ "$PROFILE" == reviewer ]]; then
+    [[ "$file" == *.md && "$real" == *.md ]] || deny 'le reviewer peut modifier uniquement les fichiers .md.'
+    case "$rel" in
+      .git | .git/* | */.git | */.git/* | .claude/runtime | .claude/runtime/* | */.claude/runtime | */.claude/runtime/* | \
+        .env | .env.* | */.env | */.env.*)
+        deny "métadonnées, journal ou secret protégé : $rel"
+        ;;
+    esac
+    allow 'édition Markdown du projet par architect-reviewer'
+  fi
   case "$rel" in
     .env.example | */.env.example) ;;
     .claude | .claude/* | */.claude | */.claude/* | .git | .git/* | */.git | */.git/* | .idea/* | .env | .env.* | */.env | */.env.* | \

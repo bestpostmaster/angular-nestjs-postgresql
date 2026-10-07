@@ -2,7 +2,12 @@
 
 Source unique du processus ; `coding_standards.md` reste la source des règles
 applicatives. Sonnet planifie et valide, **Haiku est le seul coder**, sans
-remplacement de modèle. Git reste en lecture seule pour tous les agents.
+remplacement de modèle. `architect-reviewer` peut créer et modifier les fichiers
+`.md` du projet via `Edit`/`Write`, notamment documentation, spécifications,
+rapports, `CLAUDE.md`, `AGENTS.md`, `coding_standards.md` et Markdown sous
+`.claude/`. Le code applicatif reste délégué à Haiku. Les métadonnées Git,
+secrets et journaux runtime restent protégés ; la review indépendante reste
+sans édition. Git reste en lecture seule pour tous les agents.
 
 ## Besoin autonome et état initial
 
@@ -140,8 +145,9 @@ Seuls les chemins relatifs canoniques exacts et commandes simples exactes sont
 acceptés. Pas de wildcard, shell arbitraire, outil applicatif sur l'hôte ou Git
 d'écriture. Les exceptions de commande sont réservées à Docker Compose exec,
 run/up/build/restart ; proposer un sous-ensemble minimal pour le besoin.
-Les règles des agents, `.git`, secrets, journaux, anciennes migrations et chemins
-hors projet restent interdits, même avec une exception. Les fichiers infra/CI,
+Pour le coder, les règles des agents restent protégées, même avec une exception.
+Le reviewer dispose de l'autorisation Markdown décrite ci-dessus. `.git`, secrets,
+journaux, anciennes migrations et chemins hors projet restent protégés. Les fichiers infra/CI,
 Makefile, manifests et lockfiles peuvent être autorisés individuellement.
 Sans autorisation valide, retourner un blocage précis avec proposition prête.
 L'autorisation n'est pas déduite du temps écoulé. Supprimer les exceptions après

@@ -48,7 +48,9 @@ listées dans `coding_standards.md` et les protections des hooks restent applica
 La politique unique est définie dans `.claude/feature-workflow.md` : besoin
 autonome, prérequis par périmètre, état initial, budget suivi par hooks,
 exceptions sensibles, review indépendante et preuves de validation.
-Sonnet planifie/valide ; **Haiku reste le seul coder, sans remplacement**.
+Sonnet planifie/valide et peut modifier les fichiers `.md` du projet avec
+`Edit`/`Write`, y compris les règles Markdown. **Haiku reste le seul coder,
+sans remplacement**. La review indépendante reste sans édition.
 Lire cette politique lors d'un travail `/feature`, sans dupliquer ses règles.
 La session principale transmet le verdict du reviewer ; elle ne reprend pas
 elle-même l'implémentation ou les corrections après son arrêt. Une reprise

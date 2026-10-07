@@ -6,12 +6,8 @@ PROFILE="$(jq -r '.agent_type // empty' <<<"$INPUT")"
 TOOL="$(jq -r '.tool_name // empty' <<<"$INPUT")"
 case "$PROFILE" in
   coder) printf '%s' "$INPUT" | "$(dirname "$0")/guard-subagent.sh" coder ;;
-  architect-reviewer | independent-reviewer)
-    if [[ "$PROFILE" == independent-reviewer && "$TOOL" == Agent ]]; then
-      echo 'BLOCKED : la review indépendante ne peut pas déléguer.' >&2; exit 2
-    fi
-    printf '%s' "$INPUT" | "$(dirname "$0")/guard-subagent.sh" reviewer
-    ;;
+  architect-reviewer) printf '%s' "$INPUT" | "$(dirname "$0")/guard-subagent.sh" reviewer ;;
+  independent-reviewer) printf '%s' "$INPUT" | "$(dirname "$0")/guard-subagent.sh" readonly ;;
   *)
     # La session principale ne peut prendre le relais du reviewer pour coder.
     if [[ "$TOOL" == Agent ]]; then

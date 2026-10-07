@@ -23,7 +23,8 @@ une spécification autonome et une matrice de critères vérifiables à partir d
 arguments ou du fichier indiqué. Inspecter l'état initial et déterminer les
 services requis selon le périmètre ; l'analyse reste possible sans Docker.
 
-Déléguer toute édition au seul coder Haiku avec `FEATURE_ID` et `CYCLE: N/3`.
+Modifier directement la documentation `.md` nécessaire à la demande.
+Déléguer le code applicatif au seul coder Haiku avec `FEATURE_ID` et `CYCLE: N/3`.
 Préserver le travail préexistant ; fixer le budget au premier appel : trois
 appels par étape, une à trois étapes au plus, via `STEP: N/M` si nécessaire. Faire la review indépendante conditionnelle
 et les validations finales prévues. Terminer avec `FEATURE_APPROVED` uniquement

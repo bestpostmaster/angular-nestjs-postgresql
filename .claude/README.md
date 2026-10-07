@@ -3,7 +3,10 @@
 `/feature <besoin autonome + critères, ou chemin de spécification>` lance
 `architect-reviewer` (Sonnet). Le seul agent qui implémente est `coder` (Haiku
 imposé). Une review Sonnet indépendante est prévue pour les features sensibles.
-L'humain conserve toutes les opérations Git d'écriture.
+`architect-reviewer` peut créer et modifier les fichiers `.md` du projet,
+y compris les règles et la documentation Markdown sous `.claude/`, via
+`Edit`/`Write`. La review indépendante reste sans édition. L'humain conserve
+toutes les opérations Git d'écriture.
 
 La politique est centralisée dans [feature-workflow.md](feature-workflow.md).
 Les agents et la skill y renvoient ; les règles applicatives restent dans
@@ -35,7 +38,7 @@ Préparer un besoin complet ; utiliser le modèle de spécification ci-dessous.
 | Fichier | Responsabilité |
 | --- | --- |
 | `feature-workflow.md` | Politique unique : état initial, budget, preuves et exceptions. |
-| `agents/architect-reviewer.md` | Planification et validation, sans édition. |
+| `agents/architect-reviewer.md` | Planification, validation et édition des fichiers `.md`. |
 | `agents/coder.md` | Implémentation et tests ciblés, Haiku imposé. |
 | `agents/independent-reviewer.md` | Analyse indépendante en lecture seule. |
 | `skills/feature/SKILL.md` | Entrée explicite `/feature`. |
@@ -80,7 +83,8 @@ docker compose exec -T front npm test -- --watch=false
 Les hooks et leur harnais Bash tournent sur l'hôte ; les outils applicatifs
 restent dans Docker. Les tests couvrent refus Git/shell/édition, modèles,
 ordre et plafond des cycles, appels concurrents, exceptions exactes/session/
-expiration, chemins liés et conservation des erreurs dans le journal.
+expiration, édition Markdown réservée à l’architecte, chemins liés et
+conservation des erreurs dans le journal.
 
 ## Limites des protections
 

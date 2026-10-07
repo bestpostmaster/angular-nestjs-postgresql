@@ -2,7 +2,9 @@
 
 La commande `/feature` lance Sonnet pour analyser, planifier et valider.
 **Haiku reste imposé pour tout le code, les tests et les corrections.**
-L'humain conserve les opérations Git d'écriture.
+L'architecte peut créer et modifier les fichiers `.md` du projet, y compris les
+règles et la documentation Markdown sous `.claude/`. La review indépendante
+reste sans édition. L'humain conserve les opérations Git d'écriture.
 
 Le processus complet a une seule source :
 [.claude/feature-workflow.md](.claude/feature-workflow.md).
@@ -40,7 +42,8 @@ locaux enregistrent les observations des outils ; le reviewer explique les
 défauts initiaux, corrections, critères couverts et validations dans son rapport.
 Les exceptions sensibles sont préparées concrètement et autorisées par
 l'humain avec chemins/commandes exacts, session et expiration. Elles ne peuvent
-pas autoriser Git d'écriture, secrets, règles des agents ou anciennes migrations.
+pas autoriser Git d'écriture, secrets, règles des agents pour le coder ou anciennes
+migrations. L'architecte dispose directement de l'autorisation d'édition Markdown.
 
 `context: fork` ne transmet pas toute la discussion antérieure : donner à
 `/feature` un besoin complet, ou le chemin d'une spécification avec ses critères.
