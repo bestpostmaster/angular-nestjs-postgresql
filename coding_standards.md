@@ -135,6 +135,14 @@ Une tâche n'est **terminée** que si ces commandes passent. Ne jamais déclarer
 - `JWT_SECRET` obligatoire en production (l'application doit **échouer au démarrage** s'il est absent ou égal à la valeur de dev) ; durée d'expiration courte.
 - Valeurs par défaut de dev (`dev-secret-change-me`) : **uniquement** dans `docker-compose.yml`/`.env.example`, jamais dans le code applicatif.
 - Ne jamais construire de SQL par concaténation : QueryBuilder/repository avec paramètres.
+- **Jeton JWT (émission)** :
+  - Signature avec un algorithme explicite (`HS256`) ; à la vérification, restreindre `algorithms` pour refuser `none` et toute confusion d'algorithme.
+  - Payload minimal : `sub` (uuid utilisateur) et, si nécessaire, des rôles. Jamais d'email, de hash, ni de donnée personnelle superflue (le payload est lisible par tout le monde).
+  - Toujours définir `exp` (court : `JWT_EXPIRES_IN`, 1 h max par défaut) ; `iat` présent. La durée vient de la configuration, pas d'une valeur en dur dans le module.
+  - Pas de refresh token ni de session serveur sans besoin métier explicite ; si introduit : rotation à chaque usage, stockage haché côté serveur, révocation possible, cookie `HttpOnly`.
+- **Jeton JWT (validation)** : le `JwtAuthGuard` global rejette (`401`) un jeton absent, malformé, mal signé ou expiré, avec un message générique (aucun détail sur la cause). Après vérification, recharger l'utilisateur si un compte désactivé/supprimé doit perdre l'accès immédiatement ; sinon documenter que le jeton reste valide jusqu'à `exp`.
+- **Déconnexion** : un JWT est sans état, il n'est pas révocable côté serveur sans liste de révocation. La déconnexion est donc **côté client** (suppression du jeton). Ne pas simuler une révocation inexistante ; si une révocation immédiate est requise (compte compromis, changement de mot de passe), c'est un besoin métier à traiter explicitement (denylist `jti` en Redis avec TTL = `exp`).
+- **Login** : limiter le débit (`@nestjs/throttler`), ne jamais logguer identifiants ni jeton, retourner uniquement le jeton et les informations publiques utiles (`accessToken`, `expiresIn`), jamais l'entité utilisateur brute.
 
 ### 3.5 Configuration
 
@@ -235,6 +243,17 @@ Une tâche n'est **terminée** que si ces commandes passent. Ne jamais déclarer
 - L'URL de l'API vient de la **configuration d'environnement**, jamais en dur dans les services.
 - Typer les réponses API par des **interfaces** partagées (modèles dans `models/`), pas de `any`.
 - Gestion du jeton : l'agent tranche selon le contrat existant et le besoin de persistance, sans demander un arbitrage technique à l'humain. Privilégier un cookie `HttpOnly` côté serveur lorsque le périmètre permet une authentification par cookie, avec `Secure` en production, `SameSite` adapté et protection CSRF. Pour une API existante en `Authorization: Bearer` sans besoin de persistance, conserver le jeton en mémoire et gérer expiration et déconnexion. Ne pas introduire `localStorage` par défaut : si une persistance accessible au JavaScript est nécessaire, justifier le choix, limiter les données stockées et expliquer le risque XSS résiduel. Respecter les critères d'acceptation ; ne pas ajouter un mécanisme de refresh ou une refonte d'authentification sans nécessité.
+- **Session JWT côté front** (règles détaillées, voir aussi §5.1) :
+  - Un seul **service d'authentification** (`Auth`) détient l'état de session sous forme de `signal` (`token`, `isAuthenticated` en `computed`) ; les composants ne touchent jamais au stockage directement.
+  - L'accès au stockage est isolé dans un module dédié (`token-storage.ts`), seul autorisé à lire/écrire/effacer le jeton. Clé unique et préfixée (`app.access_token`) ; ne stocker **que** le jeton (jamais mot de passe, profil, rôles dupliqués).
+  - Persistance : par défaut **mémoire seule** (perdue au rechargement). `localStorage` n'est admis que si la persistance après refresh/entre onglets est un critère d'acceptation et que l'API est en `Bearer` ; la justification et le risque XSS résiduel sont documentés dans `token-storage.ts`. Jamais `sessionStorage`/`localStorage` pour autre chose que le jeton, jamais de cookie lisible par JS.
+  - Toute lecture/écriture du stockage est entourée de `try/catch` (mode privé, quota, stockage bloqué) : en cas d'échec, dégrader vers la mémoire sans planter ni logguer le jeton.
+  - **Expiration** : à la lecture et avant chaque requête, vérifier `exp` (décodage sans vérification de signature, uniquement pour l'UX ; le back reste l'autorité). Un jeton expiré ou malformé est effacé et la session est considérée comme terminée. Le décodage ne sert jamais à prendre une décision de sécurité.
+  - **Restauration** : au démarrage de l'application, réhydrater la session depuis le stockage (jeton valide uniquement) avant l'évaluation des guards de route.
+  - **Interceptor** : n'ajoute `Authorization: Bearer` que pour les requêtes vers l'URL de l'API configurée (jamais vers un tiers). Sur `401` hors endpoint de login : effacer le jeton, mettre la session à `false` et rediriger vers la page de connexion (en conservant l'URL demandée pour y revenir). Ne pas boucler : pas de retry automatique sur `401`. `403` = utilisateur connecté mais interdit : ne pas déconnecter.
+  - **Déconnexion** : efface le jeton (stockage + signal), réinitialise l'état dépendant de l'utilisateur et redirige vers le login. En cas de stockage partagé entre onglets, écouter l'événement `storage` pour synchroniser la déconnexion.
+  - **Guards** : `CanActivateFn` basé sur `isAuthenticated()` ; les routes protégées sont la valeur par défaut, les routes publiques (login) sont l'exception. Un guard est une aide d'UX, jamais une protection : l'autorisation réelle reste côté back.
+  - Ne jamais logguer, afficher, ni placer le jeton dans une URL, un `console.*`, un message d'erreur ou un test snapshot.
 - Gérer les 3 états de toute requête : **chargement / succès / erreur**, avec feedback utilisateur.
 - Aucun `console.log` laissé ; utiliser un service de logging si besoin.
 
@@ -276,6 +295,16 @@ Une tâche n'est **terminée** que si ces commandes passent. Ne jamais déclarer
 - Changement cassant = nouvelle version de route ou période de compatibilité ; jamais de rupture silencieuse.
 - Noms de champs JSON en `camelCase`. Dates en **ISO 8601 UTC**. Identifiants en `uuid` (string).
 - Cohérence CORS : `FRONT_URL` côté back ↔ origine réelle du front.
+
+### 5.1 Contrat d'authentification et de session JWT
+
+- Le contrat de login (`POST /auth/login` → `{ accessToken, expiresIn }`, `401` générique en cas d'échec) est défini côté back ; le modèle front (`auth/models/`) le reflète exactement. Tout changement (nom de champ, durée, passage en cookie) met à jour back, front et tests dans le même changement.
+- Transport : `Authorization: Bearer <jwt>` sur toutes les routes non `@Public()`. Les routes publiques sont listées explicitement (login, status si voulu).
+- Cycle de vie d'une session : **login** (jeton reçu, stocké selon §4.5) → **utilisation** (interceptor) → **fin** par déconnexion, expiration (`exp`) ou `401`. Il n'existe pas de session côté serveur ; le back ne garde aucun état de session.
+- Sémantique des erreurs : `401` = non authentifié/jeton invalide ou expiré (le front efface la session et redirige) ; `403` = authentifié mais non autorisé (le front affiche l'erreur, la session est conservée).
+- Horloge : `exp` est en secondes UTC ; le front compare à `Date.now() / 1000`. Ne pas se reposer sur le front pour la validité : une requête avec un jeton que le front croit valide peut être rejetée par le back (`401`), ce cas est géré comme une fin de session.
+- Migration vers un cookie `HttpOnly` (si le périmètre le permet) : `Secure` en production, `SameSite` adapté, protection CSRF, `withCredentials` côté front, CORS avec `credentials` et origine explicite (jamais `*`). Le front ne manipule alors plus le jeton et supprime `token-storage.ts`.
+- Tests obligatoires : back — login nominal, identifiants invalides (message identique inconnu/mauvais mot de passe), jeton absent/expiré/falsifié refusé, route `@Public()` accessible. Front — stockage (lecture, expiration, échec du stockage), interceptor (ajout du header, pas d'ajout hors API, `401` → déconnexion, `403` → session conservée), guard (accès autorisé/refusé + redirection), restauration au démarrage, déconnexion.
 
 ---
 
