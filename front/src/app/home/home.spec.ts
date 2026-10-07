@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { Home } from './home.js';
+import { Icon } from '../shared/icon/icon.js';
 import { API_URL } from '../config.js';
 import { AuthService } from '../auth/auth.js';
 
@@ -10,7 +11,7 @@ describe('Home', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Home, HttpClientTestingModule],
+      imports: [Home, Icon, HttpClientTestingModule],
       providers: [AuthService, { provide: API_URL, useValue: 'http://localhost:3002' }],
     }).compileComponents();
 
@@ -74,11 +75,15 @@ describe('Home', () => {
     });
   });
 
-  it('should render strength point icons with aria-hidden', () => {
+  it('should render strength point icons as SVG with app-icon component', () => {
     const compiled = fixture.nativeElement;
-    const icons = compiled.querySelectorAll('.strength-icon i');
+    const icons = compiled.querySelectorAll('.strength-icon app-icon');
+    expect(icons.length).toBe(3);
     icons.forEach((icon: HTMLElement) => {
-      expect(icon.getAttribute('aria-hidden')).toBe('true');
+      const svg = icon.querySelector('svg');
+      expect(svg).toBeTruthy();
+      expect(svg?.getAttribute('aria-hidden')).toBe('true');
+      expect(svg?.getAttribute('focusable')).toBe('false');
     });
   });
 
@@ -86,5 +91,49 @@ describe('Home', () => {
     const compiled = fixture.nativeElement;
     const loginCard = compiled.querySelector('.home-login-card');
     expect(loginCard).toBeTruthy();
+  });
+
+  it('should display logo icon in app-name-wrapper', () => {
+    const compiled = fixture.nativeElement;
+    const appNameWrapper = compiled.querySelector('.app-name-wrapper');
+    expect(appNameWrapper).toBeTruthy();
+
+    const logoIcon = appNameWrapper?.querySelector('app-icon[name="logo"]');
+    expect(logoIcon).toBeTruthy();
+
+    const svg = logoIcon?.querySelector('svg');
+    expect(svg).toBeTruthy();
+    expect(svg?.getAttribute('aria-hidden')).toBe('true');
+    expect(svg?.getAttribute('focusable')).toBe('false');
+  });
+
+  it('should display lock icon in login-title-wrapper', () => {
+    const compiled = fixture.nativeElement;
+    const loginTitleWrapper = compiled.querySelector('.login-title-wrapper');
+    expect(loginTitleWrapper).toBeTruthy();
+
+    const lockIcon = loginTitleWrapper?.querySelector('app-icon[name="lock"]');
+    expect(lockIcon).toBeTruthy();
+
+    const svg = lockIcon?.querySelector('svg');
+    expect(svg).toBeTruthy();
+    expect(svg?.getAttribute('aria-hidden')).toBe('true');
+    expect(svg?.getAttribute('focusable')).toBe('false');
+  });
+
+  it('should have h1 with "Connexion" text as only heading content', () => {
+    const compiled = fixture.nativeElement;
+    const h1 = compiled.querySelector('h1.login-title');
+    expect(h1?.textContent).toContain('Connexion');
+  });
+
+  it('should have all SVG icons in page with aria-hidden="true"', () => {
+    const compiled = fixture.nativeElement;
+    const allSvgs = compiled.querySelectorAll('svg');
+    expect(allSvgs.length).toBeGreaterThan(0);
+    allSvgs.forEach((svg: SVGElement) => {
+      expect(svg.getAttribute('aria-hidden')).toBe('true');
+      expect(svg.getAttribute('focusable')).toBe('false');
+    });
   });
 });

@@ -2,7 +2,10 @@
   <!-- Panneau de marque et présentation (zone gauche sur desktop, haut sur mobile) -->
   <section class="home-brand-panel">
     <div class="brand-content">
-      <h2 class="app-name">Angular Training</h2>
+      <div class="app-name-wrapper">
+        <app-icon name="logo" class="app-logo" />
+        <h2 class="app-name">Angular Training</h2>
+      </div>
       <p class="app-tagline">
         Une plateforme de formation moderne et sécurisée pour maîtriser les meilleures pratiques de
         développement fullstack
@@ -13,7 +16,7 @@
         @for (point of strengthPoints; track point.title) {
           <li class="strength-point-item" data-testid="strength-point">
             <div class="strength-icon">
-              <i [class]="'pi ' + point.icon" aria-hidden="true"></i>
+              <app-icon [name]="point.icon" />
             </div>
             <div class="strength-text">
               <h3 class="strength-title">{{ point.title }}</h3>
@@ -28,7 +31,10 @@
   <!-- Carte de connexion (zone droite sur desktop, bas sur mobile) -->
   <section class="home-login-card">
     <div class="card-content">
-      <h1 class="login-title">Connexion</h1>
+      <div class="login-title-wrapper">
+        <app-icon name="lock" class="login-icon" />
+        <h1 class="login-title">Connexion</h1>
+      </div>
       <app-login-form />
     </div>
   </section>

@@ -1,17 +1,18 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { LoginForm } from '../auth/login-form/login-form.js';
+import { Icon, type IconName } from '../shared/icon/icon.js';
 
 /**
  * Point fort de l'application (présentation de la valeur ajoutée)
  */
 interface StrengthPoint {
-  readonly icon: string;
+  readonly icon: IconName;
   readonly title: string;
   readonly description: string;
 }
 
 @Component({
-  imports: [LoginForm],
+  imports: [LoginForm, Icon],
   selector: 'app-home',
   styleUrl: './home.scss',
   templateUrl: './home.html',
@@ -19,21 +20,21 @@ interface StrengthPoint {
 })
 export class Home {
   /**
-   * Points forts de l'application : présentés visuellement avec icônes PrimeIcons
+   * Points forts de l'application : présentés visuellement avec icônes SVG
    */
   protected readonly strengthPoints: readonly StrengthPoint[] = [
     {
-      icon: 'pi-shield',
+      icon: 'shield',
       title: 'Sécurisé',
       description: 'Authentification JWT robuste et chiffrement des données sensibles',
     },
     {
-      icon: 'pi-bolt',
+      icon: 'bolt',
       title: 'Performant',
       description: 'Architecture NestJS optimisée et base de données PostgreSQL scalable',
     },
     {
-      icon: 'pi-palette',
+      icon: 'palette',
       title: 'Moderne',
       description: 'Interface Angular 22 responsive avec PrimeNG et design épuré',
     },

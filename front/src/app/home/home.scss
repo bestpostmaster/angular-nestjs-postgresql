@@ -38,6 +38,18 @@
   gap: clamp(1.5rem, 4vw, 2.5rem);
 }
 
+.app-name-wrapper {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 1.25rem);
+}
+
+.app-logo {
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  color: var(--p-primary-600);
+  flex-shrink: 0;
+}
+
 .app-name {
   font-size: clamp(1.75rem, 5vw, 2.5rem);
   font-weight: 700;
@@ -78,10 +90,7 @@
   background-color: var(--p-primary-50);
   border-radius: var(--p-border-radius-lg);
   color: var(--p-primary-600);
-
-  i {
-    font-size: clamp(1.25rem, 3vw, 1.75rem);
-  }
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
 }
 
 .strength-text {
@@ -129,6 +138,19 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+.login-title-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.5rem, 1.5vw, 0.75rem);
+}
+
+.login-icon {
+  font-size: clamp(1.125rem, 2.5vw, 1.375rem);
+  color: var(--p-primary-600);
+  flex-shrink: 0;
 }
 
 .login-title {
