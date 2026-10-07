@@ -1,9 +1,9 @@
+/* Formulaire de connexion */
 .login-form {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
-  max-width: 28rem;
 }
 
 .form-group {
@@ -16,6 +16,7 @@
   font-weight: 600;
   font-size: 0.875rem;
   line-height: 1.25rem;
+  color: var(--p-surface-900);
 }
 
 input[type='email'],
@@ -24,11 +25,13 @@ input[type='text'] {
   width: 100%;
 }
 
+/* État invalide pour les champs de formulaire */
 input[type='email'].ng-invalid,
 input[type='password'].ng-invalid {
-  border-color: var(--surface-500);
+  border-color: var(--p-red-500);
 }
 
+/* Wrapper pour le champ mot de passe avec bouton de visibilité */
 .password-input-wrapper {
   display: flex;
   position: relative;
@@ -39,6 +42,7 @@ input[type='password'].ng-invalid {
   flex: 1;
 }
 
+/* Bouton pour basculer la visibilité du mot de passe */
 .toggle-password-button {
   position: absolute;
   right: 0.5rem;
@@ -51,26 +55,31 @@ input[type='password'].ng-invalid {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--surface-500);
+  color: var(--p-surface-500);
   transition: color 0.2s ease-in-out;
 
   &:hover {
-    color: var(--surface-600);
+    color: var(--p-surface-600);
   }
 
   &:focus-visible {
-    outline: 2px solid var(--primary-color);
+    outline: 2px solid var(--p-primary-600);
     outline-offset: 2px;
     border-radius: 2px;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 
+/* Message d'erreur de validation des champs */
 .error-message {
   padding: 0.5rem;
-  background-color: var(--red-50);
-  border-left: 0.25rem solid var(--red-500);
-  border-radius: var(--border-radius);
-  color: var(--red-700);
+  background-color: var(--p-red-50);
+  border-left: 0.25rem solid var(--p-red-500);
+  border-radius: var(--p-border-radius-md);
+  color: var(--p-red-700);
   font-size: 0.875rem;
 
   p {
@@ -87,24 +96,47 @@ input[type='password'].ng-invalid {
   }
 }
 
+/* Message d'erreur global du formulaire */
 .error-alert {
   padding: 0.75rem 1rem;
-  background-color: var(--red-50);
-  border: 1px solid var(--red-300);
-  border-radius: var(--border-radius);
-  color: var(--red-700);
+  background-color: var(--p-red-50);
+  border: 1px solid var(--p-red-300);
+  border-radius: var(--p-border-radius-md);
+  color: var(--p-red-700);
   font-weight: 500;
 }
 
+/* Message de succès (réservé pour usage futur) */
 .success-alert {
   padding: 0.75rem 1rem;
-  background-color: var(--green-50);
-  border: 1px solid var(--green-300);
-  border-radius: var(--border-radius);
-  color: var(--green-700);
+  background-color: var(--p-green-50);
+  border: 1px solid var(--p-green-300);
+  border-radius: var(--p-border-radius-md);
+  color: var(--p-green-700);
   font-weight: 500;
 }
 
+/* Bouton de soumission du formulaire */
 .submit-button {
+  width: 100%;
+}
+
+/* État authentifié : message de bienvenue et bouton déconnexion */
+.authenticated-state {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  text-align: center;
+}
+
+.authenticated-message {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--p-green-600);
+  margin: 0;
+}
+
+.logout-button {
   width: 100%;
 }

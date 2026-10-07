@@ -1,1 +1,31 @@
-/* You can add global styles to this file, and also import other style files */
+/**
+ * Styles globaux - Reset minimal et configuration base
+ */
+
+/* Reset universel : box-sizing et suppression des marges/remplissage par défaut */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Typographie globale utilisant les tokens PrimeNG */
+body {
+  font-family: var(--p-font-family, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);
+  line-height: 1.5;
+  color: var(--p-surface-900);
+  background-color: var(--p-surface-0);
+}
+
+/* Élément racine Angular */
+app-root {
+  display: block;
+  height: 100%;
+}
